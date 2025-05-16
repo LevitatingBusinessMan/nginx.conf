@@ -2,4 +2,80 @@
 
 This is my nginx configuration template.
 
+This template assumes that these default configuration files exist already:
 
+```
+/etc/nginx/conf.d
+/etc/nginx/fastcgi.conf
+/etc/nginx/fastcgi.conf.default
+/etc/nginx/fastcgi_params
+/etc/nginx/fastcgi_params.default
+/etc/nginx/koi-utf
+/etc/nginx/koi-win
+/etc/nginx/mime.types
+/etc/nginx/mime.types.default
+/etc/nginx/nginx.conf
+/etc/nginx/nginx.conf.default
+/etc/nginx/scgi_params
+/etc/nginx/scgi_params.default
+/etc/nginx/uwsgi_params
+/etc/nginx/uwsgi_params.default
+/etc/nginx/vhosts.d
+/etc/nginx/win-utf
+```
+
+== Usage
+
+Add global settings for nginx by adding files to `conf.d/`.
+
+vhosts can be added to `vhost.d`.
+
+=== Where to place websites (or webapps)
+
+Your websites should likely be stored in `/srv/www` or `/opt`.
+
+Packages should package your website in `/usr/share` or `/usr/lib`.
+Some packages use `/srv/www` but this is wrong according to the FHS.
+
+=== Examples
+
+```
+# pass example.com to a unix socket
+server {
+  listen 8080;
+  listen 8443 ssl;
+  server_name example.com;
+
+  include common.d/ssl.conf;
+  include common.d/certbot.conf;
+  include common.d/ssl_redirect.conf;
+
+  location / {
+    include common.d/proxy_headers.conf;
+    proxy_pass unix:/run/mybackend.sock;
+  }
+}
+```
+
+```
+# php website with php-fpm
+server {
+  listen 8080;
+  listen 8443 ssl;
+  server_name php.example.com;
+
+  # /opt would also be a good choice
+  root /srv/www/mywebsite;
+
+  include common.d/ssl.conf;
+  include common.d/certbot.conf;
+  include common.d/ssl_redirect.conf;
+
+  location / {
+    index index.php;
+    root /srv/www/;
+  }
+
+  include common.d/php_fpm.conf;
+}
+```
