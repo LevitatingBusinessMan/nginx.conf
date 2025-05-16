@@ -1,0 +1,5 @@
+= nginx.conf
+
+This is my nginx configuration template.
+
+
