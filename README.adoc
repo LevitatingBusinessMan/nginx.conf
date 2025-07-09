@@ -1,34 +1,28 @@
+:hardbreaks-option:
 = nginx.conf
 
 This is my nginx configuration template.
 
-This template assumes that these default configuration files exist already:
+It assumes the following https://github.com/nginx/nginx/tree/master/conf[default] configuration files are present:
 
 ```
-/etc/nginx/conf.d
-/etc/nginx/fastcgi.conf
-/etc/nginx/fastcgi.conf.default
-/etc/nginx/fastcgi_params
-/etc/nginx/fastcgi_params.default
-/etc/nginx/koi-utf
-/etc/nginx/koi-win
-/etc/nginx/mime.types
-/etc/nginx/mime.types.default
-/etc/nginx/nginx.conf
-/etc/nginx/nginx.conf.default
-/etc/nginx/scgi_params
-/etc/nginx/scgi_params.default
-/etc/nginx/uwsgi_params
-/etc/nginx/uwsgi_params.default
-/etc/nginx/vhosts.d
-/etc/nginx/win-utf
+/etc/ngninx/fastcgi.conf
+/etc/ngninx/fastcgi_params
+/etc/ngninx/koi-utf
+/etc/ngninx/koi-win
+/etc/ngninx/mime.types
+/etc/ngninx/scgi_params
+/etc/ngninx/uwsgi_params
+/etc/ngninx/win-utf
 ```
 
 == Usage
 
-Add global settings for nginx by adding files to `conf.d/`.
+server blocks are stored in `vhosts.d`
+common options are stored in `common.d` 
+global options are stored in `conf.d`
 
-vhosts can be added to `vhost.d`.
+`nginx.conf` is an extremely minimal configuration, relying mostly on the daemon's defaults. It 
 
 === Where to place websites (or webapps)
 
@@ -36,6 +30,23 @@ Your websites should likely be stored in `/srv/www` or `/opt`.
 
 Packages should package your website in `/usr/share` or `/usr/lib`.
 Some packages use `/srv/www` but this is wrong according to the FHS.
+
+=== How to set up SSL
+I recommend running nginx as root. This way it has access to your letsencrypted certificates.
+
+Otherwise I recommend specyfing a renewal hook with certbot (--renew-hook) to ensure the correct permissions are set on the certificates.
+
+Use `common.d/ssl.conf` to automatically specify the ssl certificate and key from letsencrypt. Use `common.d/ssl_redirect.conf` to redirect http requests to https.
+
+For certbot, there is `common.d/certbot.conf` which routes ACME requests to `/srv/www/certbot`. You can then invoke certbot with `--webroot -w /srv/www/certbot` and perform ACME challenges while nginx is running.
+
+```
+include common.d/ssl.conf;
+include common.d/certbot.conf;
+include common.d/ssl_redirect.conf;
+```
+
+If `ssl_redict.conf` is used, a certificate already has to exist during an ACME challenge.
 
 === Examples
 
@@ -77,5 +88,18 @@ server {
   }
 
   include common.d/php_fpm.conf;
+}
+```
+
+```
+# default vhost which returns either an empty reply or an ssl error
+server {
+  listen 80 default_server;
+  listen [::]:80 default_server;
+  listen 443 ssl default_server;
+  listen [::]:443 ssl default_server;
+  include common.d/certbot.conf;
+  ssl_reject_handshake on;
+  return 444;
 }
 ```
