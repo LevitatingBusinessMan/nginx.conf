@@ -1,6 +1,9 @@
 server {
   listen 80;
   listen 443 ssl;
+  listen [::]:80;
+  listen [::]:443 ssl;
+
   server_name example.com;
 
   include common.d/ssl.conf;
@@ -11,4 +14,5 @@ server {
     include common.d/proxy_headers.conf;
     proxy_pass unix:/run/mybackend.sock;
   }
+
 }
