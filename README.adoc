@@ -99,7 +99,9 @@ server {
   listen 443 ssl default_server;
   listen [::]:443 ssl default_server;
   include common.d/certbot.conf;
+  location / {
+    return 444;
+  }
   ssl_reject_handshake on;
-  return 444;
 }
 ```
