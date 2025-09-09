@@ -1,3 +1,6 @@
+# This is an example of a reverse proxy to a unix socket.
+# Thanks to the include directives, ssl certificates are automatically selected and renewed,
+# and http is redirected to https.
 server {
   listen 80;
   listen 443 ssl;
